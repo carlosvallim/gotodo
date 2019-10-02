@@ -16,3 +16,5 @@ autobind: []
 models:
   Todo:
     model: github.com/carlosvallim/gotodo/models.Todo
+  Usuario:
+    model: github.com/carlosvallim/gotodo/models.Usuario

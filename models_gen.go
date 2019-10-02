@@ -8,8 +8,3 @@ type NewTodo struct {
 	DtTodo string `json:"dtTodo"`
 	UserID int    `json:"userId"`
 }
-
-type Usuario struct {
-	ID   int    `json:"id"`
-	Nome string `json:"nome"`
-}

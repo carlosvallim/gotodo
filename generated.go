@@ -37,7 +37,6 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
-	Todo() TodoResolver
 }
 
 type DirectiveRoot struct {
@@ -71,9 +70,6 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	FindTodos(ctx context.Context) ([]*models.Todo, error)
-}
-type TodoResolver interface {
-	Usuario(ctx context.Context, obj *models.Todo) (*Usuario, error)
 }
 
 type executableSchema struct {
@@ -636,13 +632,13 @@ func (ec *executionContext) _Todo_usuario(ctx context.Context, field graphql.Col
 		Object:   "Todo",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Todo().Usuario(rctx, obj)
+		return obj.Usuario, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -654,13 +650,13 @@ func (ec *executionContext) _Todo_usuario(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Usuario)
+	res := resTmp.(models.Usuario)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUsuario2ᚖgithubᚗcomᚋcarlosvallimᚋgotodoᚐUsuario(ctx, field.Selections, res)
+	return ec.marshalNUsuario2githubᚗcomᚋcarlosvallimᚋgotodoᚋmodelsᚐUsuario(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Usuario_id(ctx context.Context, field graphql.CollectedField, obj *Usuario) (ret graphql.Marshaler) {
+func (ec *executionContext) _Usuario_id(ctx context.Context, field graphql.CollectedField, obj *models.Usuario) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -697,7 +693,7 @@ func (ec *executionContext) _Usuario_id(ctx context.Context, field graphql.Colle
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Usuario_nome(ctx context.Context, field graphql.CollectedField, obj *Usuario) (ret graphql.Marshaler) {
+func (ec *executionContext) _Usuario_nome(ctx context.Context, field graphql.CollectedField, obj *models.Usuario) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -2018,37 +2014,28 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._Todo_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "titulo":
 			out.Values[i] = ec._Todo_titulo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "texto":
 			out.Values[i] = ec._Todo_texto(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "dtTodo":
 			out.Values[i] = ec._Todo_dtTodo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "usuario":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Todo_usuario(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Todo_usuario(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2062,7 +2049,7 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 
 var usuarioImplementors = []string{"Usuario"}
 
-func (ec *executionContext) _Usuario(ctx context.Context, sel ast.SelectionSet, obj *Usuario) graphql.Marshaler {
+func (ec *executionContext) _Usuario(ctx context.Context, sel ast.SelectionSet, obj *models.Usuario) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, usuarioImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2434,18 +2421,8 @@ func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋcarlosvallimᚋgotodo
 	return ec._Todo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUsuario2githubᚗcomᚋcarlosvallimᚋgotodoᚐUsuario(ctx context.Context, sel ast.SelectionSet, v Usuario) graphql.Marshaler {
+func (ec *executionContext) marshalNUsuario2githubᚗcomᚋcarlosvallimᚋgotodoᚋmodelsᚐUsuario(ctx context.Context, sel ast.SelectionSet, v models.Usuario) graphql.Marshaler {
 	return ec._Usuario(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUsuario2ᚖgithubᚗcomᚋcarlosvallimᚋgotodoᚐUsuario(ctx context.Context, sel ast.SelectionSet, v *Usuario) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Usuario(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
