@@ -60,8 +60,9 @@ type ComplexityRoot struct {
 	}
 
 	Usuario struct {
-		ID   func(childComplexity int) int
-		Nome func(childComplexity int) int
+		Email func(childComplexity int) int
+		ID    func(childComplexity int) int
+		Nome  func(childComplexity int) int
 	}
 }
 
@@ -140,6 +141,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Todo.Usuario(childComplexity), true
+
+	case "Usuario.email":
+		if e.complexity.Usuario.Email == nil {
+			break
+		}
+
+		return e.complexity.Usuario.Email(childComplexity), true
 
 	case "Usuario.id":
 		if e.complexity.Usuario.ID == nil {
@@ -220,6 +228,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "schema.graphql", Input: `type Usuario {
     id: Int!
     nome: String!
+    email: String!
 }
 
 type Todo {
@@ -713,6 +722,43 @@ func (ec *executionContext) _Usuario_nome(ctx context.Context, field graphql.Col
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Nome, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Usuario_email(ctx context.Context, field graphql.CollectedField, obj *models.Usuario) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Usuario",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2065,6 +2111,11 @@ func (ec *executionContext) _Usuario(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "nome":
 			out.Values[i] = ec._Usuario_nome(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "email":
+			out.Values[i] = ec._Usuario_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
